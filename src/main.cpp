@@ -279,7 +279,7 @@ int main() {
                 mode %= 4;
             }
         }
-        if (all_money >= 3) {
+        if (all_money >= 1000000) {
             playing = false;
             int minutes = count[0] /60;
             std::cout << "You Win!\033[K" << std::endl;
