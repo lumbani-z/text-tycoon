@@ -239,7 +239,7 @@ int main() {
     if (!music.openFromFile("23.wav")) { // Replace with your music file path
         std::cout << "Error: Could not load music file!" << std::endl;
         return -1;
-    }
+    } 
     music.setVolume(50.0f);
     music.setLooping(true); // Loop the music
     music.play(); // Start playing the music
