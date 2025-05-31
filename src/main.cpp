@@ -7,6 +7,7 @@
 #include <cmath>
 #include <conio.h>
 #include <iomanip>
+#include <tuple>
 
 constexpr const char* RESET   = "\033[0m";
 constexpr const char* RED     = "\033[31m";
@@ -28,17 +29,21 @@ struct Shop{
 
 
 
-double print_bar(int resource_id, std::string resource_name, double all_money, bool resource_owned, int mul, double resource_cost, double rate, int resource_level, double resource_time, double count, double revenue, double segments = 10){
+std::pair<double, double> print_bar(double resource_time_target, int resource_id, std::string resource_name, double all_money, bool resource_owned, int mul, double resource_cost, double rate, int resource_level, double resource_time, double count, double revenue, double segments = 20){
     //std::fmod(count, rate[i]);
     int funds = all_money;
     double epsilon = 1e-8;
     double q = count / resource_time;
+    double result = std::fmod((count), (resource_time));
+
     int mod = (std::abs(q - std::round(q)) < epsilon)
         ? static_cast<int>(std::round(q))
         : static_cast<int>(std::floor(q));
 
     if (resource_owned){
-        std::cout << "["<<resource_id<<"] " << resource_name << "\033[K" << std::endl;
+        std::cout << "["<<resource_id<<"] " << resource_name << " \033[K" ;
+        std::cout << std::fixed << std::setprecision(2) << resource_time - result << "s \033[K" << std::endl;
+
     }
     else{
         std::cout << "["<<resource_id<<"] ???" << "\033[K" << std::endl;
@@ -56,7 +61,6 @@ double print_bar(int resource_id, std::string resource_name, double all_money, b
 
 
     //std::cout << "count: \033[K" << count << std::endl;
-    double result = std::fmod((count), (resource_time));
     if (std::abs(result) < 1e-6 || std::abs(result) >= resource_time - 1e-6 ) {
         result = 0;
     }
@@ -77,8 +81,9 @@ double print_bar(int resource_id, std::string resource_name, double all_money, b
                     std::cout << " ";
                 }
             }
-            if (count != 0 && (0.0001 >= result || resource_time - result <= 0.0001 )){
+            if (count != 0 && (0.0001 >= result || resource_time - result <= 0.0001 || count >= resource_time_target)){
                 revenue += rate;
+                resource_time_target += resource_time;
                 std::cout << "] " <<YELLOW << " +$" << rate << "! \033[K" << RESET << std::endl;
             }
             else{
@@ -167,7 +172,7 @@ double print_bar(int resource_id, std::string resource_name, double all_money, b
             }
         }
 
-        return revenue;
+        return {revenue, resource_time_target};
     }
     else{        
  //       std::cout << "Money: " << revenue << std::endl;
@@ -222,7 +227,7 @@ double print_bar(int resource_id, std::string resource_name, double all_money, b
             }
         }
  
-        return 0;
+        return {0, resource_time_target};
     }
 }
 // This is my main function
@@ -239,7 +244,7 @@ int main() {
     if (!music.openFromFile("23.wav")) { // Replace with your music file path
         std::cout << "Error: Could not load music file!" << std::endl;
         return -1;
-    } 
+    }
     music.setVolume(50.0f);
     music.setLooping(true); // Loop the music
     music.play(); // Start playing the music
@@ -258,6 +263,7 @@ int main() {
     std::array<int, 10> lim = {50, 50 ,50 ,50 ,50, 50 ,50, 50, 50, 50}; 
     std::array<double, 10> count = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     std::array<std::string, 10> resource_name = {"Chisel & Stone", "Quill & Ink", "Pencil", "Pen", "Typewriter", "Keyboard", "Gesture Typing", "Voice Typing", "AI Agent", "Neural Link"};
+    std::array<double, 10> resource_time_target = {2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0};    
     double segments = 5.0;
     double deficit = 0.0;
     double all_money = 0.0;
@@ -275,8 +281,11 @@ int main() {
         std::cout << "" << std::endl;
         for (int i = 0; i < revenue.size(); i++){
 //            std::cout << "Total funds: " << all_money << std::endl;
-            revenue[i] = print_bar(resource_id[i], resource_name[i], all_money, resource_owned[i], mul[mode], resource_cost[i], rate[i]*resource_level[i], resource_level[i], resource_time[i], count[i], revenue[i]);
+            std::pair<double, double> results = print_bar(resource_time_target[i], resource_id[i], resource_name[i], all_money, resource_owned[i], mul[mode], resource_cost[i], rate[i]*resource_level[i], resource_level[i], resource_time[i], count[i], revenue[i]);
 //            all_money = std::accumulate(revenue.begin(), revenue.end(), 0);
+            revenue[i] = results.first;
+            resource_time_target[i] = results.second;
+            
             if (resource_owned[i]){
                 count[i] += .1;
             }
@@ -285,10 +294,10 @@ int main() {
         std::cout << "Enter the number of the resource you want to upgrade." << std::endl;
         std::cout << "Each upgrade increases the revenue gained from the resource." << std::endl;
         std::cout << "More resources are unlocked once you reach sufficient funds." << std::endl;
-        std::cout << "Every 50 upgrades the production time of a resource will be cut in half." << std::endl;
+        std::cout << "After reaching level 50, every 25 upgrades doubles production speed." << std::endl;
         if (_kbhit()) {
             char ch = _getch();  // Read the character without needing to press Enter
-            std::cout << "You pressed: " << ch << std::endl;
+            std::cout << "Last pressed key: " << ch << std::endl;
             if (ch == 'q') {  // Press 'q' to quit
                 break;
             }
@@ -328,15 +337,16 @@ int main() {
                             resource_cost[ch] = std::round(resource_cost[ch] * 100.0) / 100.0;
                         }
                     }
-                    if (resource_level[ch] >= lim[ch]){
+                    while (resource_level[ch] >= lim[ch]){
                         if (resource_time[ch] <= .1){
                             resource_time[ch] = .1;
                         }
                         else{
                             resource_time[ch] /= 2;
                         }
-                        lim[ch] += 50;
+                        lim[ch] += 25;
                     }
+                    
                 }
                 else{
                     if (resource_owned[ch] == false && all_money >= resource_cost[ch]){
