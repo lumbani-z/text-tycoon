@@ -8,12 +8,19 @@
 #include <conio.h>
 #include <iomanip>
 #include <tuple>
+#include <sstream>
+std::ostringstream frame;
+
 
 constexpr const char* RESET   = "\033[0m";
 constexpr const char* RED     = "\033[31m";
 constexpr const char* GREEN   = "\033[32m";
 constexpr const char* YELLOW  = "\033[33m";
 int mode = 0;
+
+void turn_on_cursor() {
+    frame << "\033[?25h" << std::flush;
+}
 
 
 std::pair<double, double> print_bar(double resource_time_target, int resource_id, std::string resource_name, double all_money, bool resource_owned, int mul, double resource_cost, double rate, int resource_level, double resource_time, double count, double revenue, double segments = 20){
@@ -28,22 +35,22 @@ std::pair<double, double> print_bar(double resource_time_target, int resource_id
         : static_cast<int>(std::floor(q));
 
     if (resource_owned){
-        std::cout << "["<<resource_id<<"] " << resource_name << " \033[K" ;
-        std::cout << std::fixed << std::setprecision(2) << resource_time - result << "s \033[K" << std::endl;
+        frame << "["<<resource_id<<"] " << resource_name << " \033[K" ;
+        frame << std::fixed << std::setprecision(2) << resource_time - result << "s \033[K" << "\n";
 
     }
     else{
-        std::cout << "["<<resource_id<<"] ???" << "\033[K" << std::endl;
+        frame << "["<<resource_id<<"] ???" << "\033[K" << "\n";
     }
-    std::cout << "Lv \033[K" << resource_level << " ";
+    frame << "Lv \033[K" << resource_level << " ";
     if(resource_level != 0){
         for (int x = resource_level; x < 999;){
-            std::cout << " \033[K";
+            frame << " \033[K";
             x *= 10;
         }
     }
     else{
-        std::cout << "   \033[K";
+        frame << "   \033[K";
     }
 
     if (std::abs(result) < 1e-6 || std::abs(result) >= resource_time - 1e-6 ) {
@@ -51,37 +58,37 @@ std::pair<double, double> print_bar(double resource_time_target, int resource_id
     }
     if (resource_owned){
         if ((rate*mod) >= (revenue+rate) && count != 0){
-            std::cout << "[";
+            frame << "[";
             double ratio = std::fmod(count, resource_time) / resource_time;
             for (int i = 0; i < segments; ++i) {
                 double threshold = static_cast<double>(i + 1) / segments;
                 if (ratio >= threshold - 0.0001 || resource_time == .1) {
-                    std::cout << GREEN << "#" << RESET;
+                    frame << GREEN << "#" << RESET;
                 } else {
-                    std::cout << " ";
+                    frame << " ";
                 }
             }
             if (count != 0 && (0.0001 >= result || resource_time - result <= 0.0001 || count >= resource_time_target)){
                 revenue += rate;
                 resource_time_target += resource_time;
-                std::cout << "] " <<YELLOW << " +$" << rate << "! \033[K" << RESET << std::endl;
+                frame << "] " <<YELLOW << " +$" << rate << "! \033[K" << RESET << "\n";
             }
             else{
-                std::cout << "] \033[K" << std::endl;
+                frame << "] \033[K" << "\n";
             }
         }
         else{
-            std::cout << "[";
+            frame << "[";
             double ratio = std::fmod(count, resource_time) / resource_time;
             for (double i = 0; i < segments; ++i) {
                 double threshold = static_cast<double>(i + 1) / segments;
                 if (ratio >= threshold - 0.0001) {
-                    std::cout << GREEN << "#" << RESET;
+                    frame << GREEN << "#" << RESET;
                 } else {
-                    std::cout << " ";
+                    frame << " ";
                 }
             }
-            std::cout <<"]\033[K" << std::endl;
+            frame <<"]\033[K" << "\n";
         }
         if (mode != 3){
             double cost = 0;
@@ -89,20 +96,20 @@ std::pair<double, double> print_bar(double resource_time_target, int resource_id
             for (x = 0; x < mul; x++){
                 cost += std::round(resource_cost * std::pow(1.04, x) * 100.0) / 100.0;
             } 
-            std::cout << "Buy       \033[K";        
-            std::cout << "Cost: $\033[K" << std::fixed << std::setprecision(2) << cost << std::endl;
-            std::cout << mul << "x      ";
+            frame << "Buy       \033[K";        
+            frame << "Cost: $\033[K" << std::fixed << std::setprecision(2) << cost << "\n";
+            frame << mul << "x      ";
             if(mul != 1){
                 for (int x = mul; x < 100;){
-                    std::cout << " \033[K";
+                    frame << " \033[K";
                     x *= 10;
                 }
             }
             else{
-                std::cout << "  \033[K";
+                frame << "  \033[K";
             }
-            std::cout << "$" << std::fixed << std::setprecision(2) << rate * 1/resource_time << " /sec\033[K" << std::endl;
-            std::cout << "\033[K" << std::endl;         
+            frame << "$" << std::fixed << std::setprecision(2) << rate * 1/resource_time << " /sec\033[K" << "\n";
+            frame << "\033[K" << "\n";         
         }
         else{
             double cost = resource_cost;
@@ -115,35 +122,35 @@ std::pair<double, double> print_bar(double resource_time_target, int resource_id
                 cost += std::round(resource_cost * std::pow(1.04, i) * 100.0) / 100.0;
 
             }
-            std::cout << "Buy       \033[K";        
-            std::cout << "Cost: $\033[K" << std::fixed << std::setprecision(2) << cost << std::endl;
-            std::cout << x << "x      ";
+            frame << "Buy       \033[K";        
+            frame << "Cost: $\033[K" << std::fixed << std::setprecision(2) << cost << "\n";
+            frame << x << "x      ";
             if(x > 1){
                 for (int i = x; i < 100;){
-                    std::cout << " \033[K";
+                    frame << " \033[K";
                     i *= 10;
                 }
             }
             else{
-                std::cout << "  \033[K";
+                frame << "  \033[K";
             }
-            std::cout << "$" << std::fixed << std::setprecision(2) << rate * 1/resource_time << " /sec\033[K" << std::endl;
-            std::cout << "\033[K" << std::endl;         
+            frame << "$" << std::fixed << std::setprecision(2) << rate * 1/resource_time << " /sec\033[K" << "\n";
+            frame << "\033[K" << "\n";         
         
         }
 
         return {revenue, resource_time_target};
     }
     else{        
-        std::cout << "[";
+        frame << "[";
         double ratio = std::fmod(count, resource_time) / resource_time;
         for (double i = 0; i < segments; ++i) {
-            std::cout << " ";
+            frame << " ";
         }
-        std::cout <<"]\033[K" << std::endl; 
-        std::cout << "Not yet discovered\033[K" << std::endl;       
-        std::cout << "Unlock Cost: $\033[K" << resource_cost << std::endl;
-        std::cout << "\033[K" << std::endl;
+        frame <<"]\033[K" << "\n"; 
+        frame << "Not yet discovered\033[K" << "\n";       
+        frame << "Unlock Cost: $\033[K" << resource_cost << "\n";
+        frame << "\033[K" << "\n";
  
         return {0, resource_time_target};
     }
@@ -151,9 +158,10 @@ std::pair<double, double> print_bar(double resource_time_target, int resource_id
 
 // This is my main function
 int main() {
+    std::atexit(turn_on_cursor);
     sf::SoundBuffer selectBuffer;
     if (!selectBuffer.loadFromFile("fx.wav")) { // Replace with your sound file path
-        std::cout << "Error: Could not load sound file!" << std::endl;
+        frame << "Error: Could not load sound file!" << "\n";
         return -1;
     }
     sf::Sound selectSound(selectBuffer);
@@ -161,7 +169,7 @@ int main() {
     // Load background music
     sf::Music music;
     if (!music.openFromFile("23.wav")) { // Replace with your music file path
-        std::cout << "Error: Could not load music file!" << std::endl;
+        frame << "Error: Could not load music file!" << "\n";
         return -1;
     }
     music.setVolume(50.0f);
@@ -188,35 +196,41 @@ int main() {
     double all_money = 0.0;
     system("cls");
     while(playing){
+        frame << "\033[H";
+        frame << "\033[?25l";  // Hide cursor
+        auto current_time = clock::now();
+        std::chrono::duration<double> delta_time = current_time - next_tick + std::chrono::duration<double>(0.1);
+
         all_money = std::accumulate(revenue.begin(), revenue.end(), 0.0);
         all_money -= deficit;
         if (mode != 3){
-            std::cout << "[m] Buy " << mul[mode] << "x\033[K" << std::endl;
+            frame << "[m] Buy " << mul[mode] << "x\033[K" << "\n";
         }
         else{
-            std::cout << "[m] Buy MAX\033[K" << std::endl;
+            frame << "[m] Buy MAX\033[K" << "\n";
         }
-        std::cout << "Total funds: $\033[K" << std::fixed << std::setprecision(2) << all_money << " / 1000000" << std::endl;
-        std::cout << "" << std::endl;
+        frame << "Total funds: $\033[K" << std::fixed << std::setprecision(2) << all_money << " / $1000000" << "\n";
+        frame << "" << "\n";
         for (int i = 0; i < revenue.size(); i++){
             std::pair<double, double> results = print_bar(resource_time_target[i], resource_id[i], resource_name[i], all_money, resource_owned[i], mul[mode], resource_cost[i], rate[i]*resource_level[i], resource_level[i], resource_time[i], count[i], revenue[i]);
             revenue[i] = results.first;
             resource_time_target[i] = results.second;
             
             if (resource_owned[i]){
-                count[i] += .1;
+                count[i] += delta_time.count();
+
             }
         }
-        std::cout << "Push the [m] key to change purchase mode." << std::endl;
-        std::cout << "Enter the number of the resource you want to upgrade." << std::endl;
-        std::cout << "Each upgrade increases the revenue gained from a resource." << std::endl;
-        std::cout << "More resources are unlocked by purchasing with sufficient funds." << std::endl;
-        std::cout << "After reaching level 50, every 25 upgrades doubles production speed." << std::endl;
-        std::cout << "" << std::endl;
+        frame << "Push the [m] key to change purchase mode." << "\n";
+        frame << "Enter the number of the resource you want to upgrade." << "\n";
+        frame << "Each upgrade increases the revenue gained from a resource." << "\n";
+        frame << "More resources are unlocked by purchasing with sufficient funds." << "\n";
+        frame << "After reaching level 50, every 25 upgrades doubles production speed." << "\n";
+        frame << "" << "\n";
         if (_kbhit()) {
             char ch = _getch();  // Read the character without needing to press Enter
             selectSound.play();
-            std::cout << "Last pressed key: " << ch << std::endl;
+            //frame << "Last pressed key: " << ch << "\n";
             if (ch == 'q') {  // Press 'q' to quit
                 break;
             }
@@ -282,13 +296,15 @@ int main() {
         if (all_money >= 1000000) {
             playing = false;
             int minutes = count[0] /60;
-            std::cout << "You Win!\033[K" << std::endl;
-            std::cout << "Time taken: " << minutes << " minutes " << std::fmod(count[0], 60) << " seconds" << std::endl;
+            frame << "You Win!\033[K" << "\n";
+            frame << "Time taken: " << minutes << " minutes " << std::fmod(count[0], 60) << " seconds" << "\n";
         }
 
         next_tick = clock::now();
         next_tick += std::chrono::duration_cast<clock::duration>(std::chrono::duration<double>(.1));
         std::this_thread::sleep_until(next_tick);
-        std::cout << "\033[H";
+        std::cout << frame.str() << std::flush;
+        frame.str("");         // Clear the string buffer
+        frame.clear(); 
     }
 }
