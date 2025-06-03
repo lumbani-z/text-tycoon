@@ -331,7 +331,7 @@ int main() {
                         resource_time[ch] /= 2;
                         if (resource_time[ch] <= .1){
                             resource_time[ch] = .1;
-                        }
+                        } 
                         lim[ch] += 25;
                     }
                     // Each resourece has a limit that determines when the production speed doubles
