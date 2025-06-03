@@ -29,6 +29,7 @@ std::ostringstream frame;
 void turn_on_cursor() {
     // Turn the cursor back on after hiding 
     frame << "\033[?25h" << std::flush;
+    _getch();
 }
 
 
@@ -326,12 +327,10 @@ int main() {
                         // If mode is not MAX
                         // Also calculates the cost, but number of upgrades is determined by mul[mode] (1, 10, 100)
                     }
-                    while (resource_level[ch] >= lim[ch]){
+                    while (resource_level[ch] >= lim[ch] && resource_time[ch] != .1){
+                        resource_time[ch] /= 2;
                         if (resource_time[ch] <= .1){
                             resource_time[ch] = .1;
-                        }
-                        else{
-                            resource_time[ch] /= 2;
                         }
                         lim[ch] += 25;
                     }
@@ -361,6 +360,9 @@ int main() {
             int minutes = count[0] /60;
             frame << "You Win!\033[K" << "\n";
             frame << "Time taken: " << minutes << " minutes " << std::fmod(count[0], 60) << " seconds" << "\n";
+            frame << "Push any key to exit the game" << "\n";
+            
+            
         }
         // Ends the game if user earns one million dollars
         // Returns time taken
