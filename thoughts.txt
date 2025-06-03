@@ -1,12 +1,14 @@
+A lot of improvement could be made: more functions, more files aside from main, structs insted of arrays, just to name a few. But I don't know how yet
+
 This one took much longer than expected. IF you've seen the previous program, this was a fairly large step up in scope.
 
 The formula for tycoon games already exists in numerous mobile games, so spending hours playing them to understand the systems counts as R&D right?
 
-But honestly, looking at these tycoon games from the lense of someone trying to recreate the features and progression was eye opening as I had never given them much thought before.
+But seriously, looking at other tycoon games from the lense of someone trying to recreate the features and progression was eye opening as I had never given them much thought before.
 
 That took up most of my time. I also spend a while figuring out how to deal with flickers, and many, many days modifying update logic for time, cost, and revenue
 
-But it was fun seeing the game take shape. The moment I saw real time asynchronous progress bars I felt like I was a gamedev for a moment haha
+But it was fun seeing the game take shape. The moment I saw real time asynchronous progress bars I felt like I was a gamedev just for a moment haha
 
 ANSI codes were not as fun though...
 
@@ -22,3 +24,4 @@ Going forward, I will probably do one more terminal project or I might just jump
 I just need to think of another game to copy
 
 thats all
+
